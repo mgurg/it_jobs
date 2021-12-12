@@ -59,7 +59,7 @@ class Jobs(SQLModel, table=True):
     created_at: Optional[datetime]
     ended_at: Optional[datetime]
     updated_at: Optional[datetime]
-    uuid: Optional[uuid.UUID]
+    # uuid: Optional[uuid.UUID]
 
     class Config:
         arbitrary_types_allowed = True
@@ -68,7 +68,7 @@ class Jobs(SQLModel, table=True):
 sqlite_file_name = "database.db"
 sqlite_url = f"sqlite:///{sqlite_file_name}"
 
-engine = create_engine(sqlite_url, echo=True)
+engine = create_engine(sqlite_url, echo=False)
 
 
 def create_db_and_tables():
@@ -96,7 +96,7 @@ def get_job_details(id: str) -> str:
         "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36",
     }
     print(config["URL"] + "/" + id)
-    sleep(randint(2, 50))
+    sleep(randint(1, 2))
     r = requests.get(config["URL"] + "/" + id, headers=headers)
 
     return json.dumps(r.json())
@@ -109,10 +109,20 @@ def create_jobs():
     with filepath.open() as f:
         obj = json.load(f)
 
+    cnt = 0
     for job in obj:
-        # TODO: Check for existing entries
-        # with Session(engine) as session:
-        #     job = session.exec(select(Jobs).where(Jobs.offer_id == job["id"])).one_or_none()
+        iteration = f"{cnt}/{len(obj)}"
+        print(iteration, job["title"], job["id"])
+        cnt += 1
+        with Session(engine) as session:
+            existing_job = session.exec(select(Jobs).where(Jobs.offer_id == job["id"])).one_or_none()
+
+            if existing_job:
+                existing_job.ended_at == datetime.utcnow()
+                session.add(existing_job)
+                session.commit()
+                session.refresh(existing_job)
+                continue
 
         # print(job["title"])
         job = Jobs(
@@ -137,8 +147,9 @@ def create_jobs():
             offer_id=job["id"],
             offer_details=get_job_details(job["id"]),
             created_at=datetime.utcnow(),
+            ended_at=None,
             updated_at=None,
-            uuid=get_uuid(),
+            # uuid=get_uuid(),
         )
 
         with Session(engine) as session:
@@ -149,9 +160,8 @@ def create_jobs():
 
 def main():
     # create_db_and_tables()
-    # get_jobs()
-    # create_jobs()
-
+    get_jobs()
+    create_jobs()
 
 
 if __name__ == "__main__":
