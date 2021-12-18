@@ -284,7 +284,7 @@ typing-extensions = ">=3.7.4"
 
 [[package]]
 name = "sqlmodel"
-version = "0.0.4"
+version = "0.0.5"
 description = "SQLModel, SQL databases in Python, designed for simplicity, compatibility, and robustness."
 category = "main"
 optional = false
@@ -297,7 +297,7 @@ sqlalchemy2-stubs = "*"
 
 [[package]]
 name = "tomli"
-version = "1.2.2"
+version = "1.2.3"
 description = "A lil' TOML parser"
 category = "dev"
 optional = false
@@ -335,7 +335,7 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "4cac6a591ede872324f1859e5d46cb8612fc2997aca9200110e07f1e74321fe0"
+content-hash = "cf704ebf0b29bea2ac2d3c458b96dd102344fd68c365ea37ca7bae29913f48db"
 
 [metadata.files]
 autoflake = [
@@ -585,12 +585,12 @@ sqlalchemy2-stubs = [
     {file = "sqlalchemy2_stubs-0.0.2a19-py3-none-any.whl", hash = "sha256:aac7dca77a2c49e5f0934976421d5e25ae4dc5e27db48c01e055f81caa1e3ead"},
 ]
 sqlmodel = [
-    {file = "sqlmodel-0.0.4-py3-none-any.whl", hash = "sha256:441224eea75ea3799661dad0f9599bbd70322ce7d083f30f6741ebc807bc3ee6"},
-    {file = "sqlmodel-0.0.4.tar.gz", hash = "sha256:9503befd4374a8e84e9432b344dc9488e9ca2cc4bd1c944ab6837c1bae0b9837"},
+    {file = "sqlmodel-0.0.5-py3-none-any.whl", hash = "sha256:bcf083c53b2a94d044ae09d62322401bde5d5b669e8173a0e2a43932b03d99d6"},
+    {file = "sqlmodel-0.0.5.tar.gz", hash = "sha256:72c7ca0f0bbabcba9d03eb707b70761684f8f68e693ea58a89e4238f4d4faf0f"},
 ]
 tomli = [
-    {file = "tomli-1.2.2-py3-none-any.whl", hash = "sha256:f04066f68f5554911363063a30b108d2b5a5b1a010aa8b6132af78489fe3aade"},
-    {file = "tomli-1.2.2.tar.gz", hash = "sha256:c6ce0015eb38820eaf32b5db832dbc26deb3dd427bd5f6556cf0acac2c214fee"},
+    {file = "tomli-1.2.3-py3-none-any.whl", hash = "sha256:e3069e4be3ead9668e21cb9b074cd948f7b3113fd9c8bba083f48247aab8b11c"},
+    {file = "tomli-1.2.3.tar.gz", hash = "sha256:05b6166bff487dc068d322585c7ea4ef78deed501cc124060e0f238e89a9231f"},
 ]
 typed-ast = [
     {file = "typed_ast-1.4.3-cp35-cp35m-manylinux1_i686.whl", hash = "sha256:2068531575a125b87a41802130fa7e29f26c09a2833fea68d9a40cf33902eba6"},

@@ -118,6 +118,7 @@ def create_jobs():
             existing_job = session.exec(select(Jobs).where(Jobs.offer_id == job["id"])).one_or_none()
 
             if existing_job:
+                print("UPDATE " + job["title"])
                 existing_job.ended_at == datetime.utcnow()
                 session.add(existing_job)
                 session.commit()
