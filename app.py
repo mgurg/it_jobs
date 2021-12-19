@@ -119,7 +119,13 @@ def create_jobs():
 
             if existing_job:
                 print("UPDATE " + job["title"])
-                existing_job.ended_at == datetime.utcnow()
+                update_package = {
+                    "ended_at": datetime.utcnow(),
+                }
+
+                for key, value in update_package.items():
+                    setattr(existing_job, key, value)
+                # existing_job.ended_at == datetime.utcnow()
                 session.add(existing_job)
                 session.commit()
                 session.refresh(existing_job)
