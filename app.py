@@ -111,14 +111,16 @@ def create_jobs():
 
     cnt = 0
     for job in obj:
-        iteration = f"{cnt}/{len(obj)}"
-        print(iteration, job["title"], job["id"])
         cnt += 1
+        iteration = f"{cnt}/{len(obj)}"
+        if cnt % 10 == 0:
+            print(iteration, job["title"], job["id"])
+
         with Session(engine) as session:
             existing_job = session.exec(select(Jobs).where(Jobs.offer_id == job["id"])).one_or_none()
 
             if existing_job:
-                print("UPDATE " + job["title"])
+                # print("UPDATE " + job["title"])
                 update_package = {
                     "ended_at": datetime.utcnow(),
                 }
