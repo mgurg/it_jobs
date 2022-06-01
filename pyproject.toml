@@ -5,11 +5,11 @@ description = ""
 authors = ["Your Name <you@example.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.10"
 requests = "^2.26.0"
-sqlmodel = "^0.0.5"
+sqlmodel = "^0.0.6"
 python-dotenv = "^0.19.2"
-psycopg2-binary = "^2.9.2"
+SQLAlchemy = "1.4.35"
 
 [tool.poetry.dev-dependencies]
 mypy = "^0.812"

@@ -1,0 +1,12 @@
+certifi==2022.5.18.1; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
+charset-normalizer==2.0.12; python_full_version >= "3.6.0" and python_version >= "3"
+greenlet==1.1.2; python_version >= "3" and (platform_machine == "aarch64" or platform_machine == "ppc64le" or platform_machine == "x86_64" or platform_machine == "amd64" or platform_machine == "AMD64" or platform_machine == "win32" or platform_machine == "WIN32") and (python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.6.0") and python_full_version >= "3.6.1" and python_full_version < "4.0.0"
+idna==3.3; python_version >= "3.5" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.5"
+pydantic==1.9.1; python_full_version >= "3.6.1" and python_full_version < "4.0.0"
+python-dotenv==0.19.2; python_version >= "3.5"
+requests==2.27.1; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.6.0")
+sqlalchemy2-stubs==0.0.2a22; python_full_version >= "3.6.1" and python_full_version < "4.0.0" and python_version >= "3.6"
+sqlalchemy==1.4.35; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.6.0")
+sqlmodel==0.0.6; python_full_version >= "3.6.1" and python_full_version < "4.0.0"
+typing-extensions==4.2.0; python_full_version >= "3.6.1" and python_full_version < "4.0.0" and python_version >= "3.7"
+urllib3==1.26.9; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version < "4"

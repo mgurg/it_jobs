@@ -68,7 +68,7 @@ class Jobs(SQLModel, table=True):
 sqlite_file_name = "database.db"
 sqlite_url = f"sqlite:///{sqlite_file_name}"
 
-engine = create_engine(sqlite_url, echo=False)
+engine = create_engine(sqlite_url,encoding="utf-8", echo=False)
 
 
 def create_db_and_tables():
@@ -95,7 +95,7 @@ def get_job_details(id: str) -> str:
         "accept": "text/html,application/xhtml+xml,application/xml",
         "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36",
     }
-    print(config["URL"] + "/" + id)
+    # print(config["URL"] + "/" + id)
     sleep(randint(1, 2))
     r = requests.get(config["URL"] + "/" + id, headers=headers)
 
@@ -113,8 +113,8 @@ def create_jobs():
     for job in obj:
         cnt += 1
         iteration = f"{cnt}/{len(obj)}"
-        if cnt % 10 == 0:
-            print(iteration, job["title"], job["id"])
+        # if cnt % 10 == 0:
+        #    print(iteration)
 
         with Session(engine) as session:
             existing_job = session.exec(select(Jobs).where(Jobs.offer_id == job["id"])).one_or_none()
