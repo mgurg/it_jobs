@@ -1,25 +1,13 @@
 import json
 import uuid as uuid
-from datetime import date, datetime, time
+from datetime import date, datetime
 from pathlib import Path
 from random import randint
 from time import sleep
-from typing import Optional
 
 import requests
 from dotenv import dotenv_values
-from pydantic import EmailStr, Json
-from sqlmodel import (
-    JSON,
-    Column,
-    Field,
-    Relationship,
-    Session,
-    SQLModel,
-    String,
-    create_engine,
-    select,
-)
+from sqlmodel import Field, Session, SQLModel, create_engine, select
 
 
 def get_uuid() -> uuid.uuid4:
@@ -35,30 +23,30 @@ def get_uuid() -> uuid.uuid4:
 
 
 class Jobs(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    title: Optional[str] = Field(max_length=255)
-    street: Optional[str] = Field(max_length=255)
-    city: Optional[str] = Field(max_length=255)
-    country_code: Optional[str] = Field(max_length=16)
-    address_text: Optional[str] = Field(max_length=255)
-    marker_icon: Optional[str] = Field(max_length=16)
-    workplace_type: Optional[str] = Field(max_length=16)
-    company_name: Optional[str] = Field(max_length=255)
-    company_url: Optional[str] = Field(max_length=255)
-    company_size: Optional[str] = Field(max_length=255)
-    experience_level: Optional[str] = Field(max_length=255)
-    latitude: Optional[str] = Field(max_length=16)
-    longitude: Optional[str] = Field(max_length=16)
-    published_at: Optional[datetime]
-    remote_interview: Optional[bool]
-    employment_types: Optional[str]
-    skills: Optional[str]
-    remote: Optional[bool]
-    offer_id: Optional[str] = Field(max_length=255)
-    offer_details: Optional[str]
-    created_at: Optional[datetime]
-    ended_at: Optional[datetime]
-    updated_at: Optional[datetime]
+    id: int | None = Field(default=None, primary_key=True)
+    title: str | None = Field(max_length=255)
+    street: str | None = Field(max_length=255)
+    city: str | None = Field(max_length=255)
+    country_code: str | None = Field(max_length=16)
+    address_text: str | None = Field(max_length=255)
+    marker_icon: str | None = Field(max_length=16)
+    workplace_type: str | None = Field(max_length=16)
+    company_name: str | None = Field(max_length=255)
+    company_url: str | None = Field(max_length=255)
+    company_size: str | None = Field(max_length=255)
+    experience_level: str | None = Field(max_length=255)
+    latitude: str | None = Field(max_length=16)
+    longitude: str | None = Field(max_length=16)
+    published_at: datetime | None
+    remote_interview: bool | None
+    employment_types: str | None
+    skills: str | None
+    remote: bool | None
+    offer_id: str | None = Field(max_length=255)
+    offer_details: str | None
+    created_at: datetime | None
+    ended_at: datetime | None
+    updated_at: datetime | None
     # uuid: Optional[uuid.UUID]
 
     class Config:
@@ -68,7 +56,7 @@ class Jobs(SQLModel, table=True):
 sqlite_file_name = "database.db"
 sqlite_url = f"sqlite:///{sqlite_file_name}"
 
-engine = create_engine(sqlite_url,encoding="utf-8", echo=False)
+engine = create_engine(sqlite_url, encoding="utf-8", echo=False)
 
 
 def create_db_and_tables():
@@ -112,7 +100,7 @@ def create_jobs():
     cnt = 0
     for job in obj:
         cnt += 1
-        iteration = f"{cnt}/{len(obj)}"
+        f"{cnt}/{len(obj)}"
         # if cnt % 10 == 0:
         #    print(iteration)
 
@@ -121,9 +109,7 @@ def create_jobs():
 
             if existing_job:
                 # print("UPDATE " + job["title"])
-                update_package = {
-                    "ended_at": datetime.utcnow(),
-                }
+                update_package = {"ended_at": datetime.utcnow()}
 
                 for key, value in update_package.items():
                     setattr(existing_job, key, value)
@@ -169,9 +155,9 @@ def create_jobs():
 
 def main():
     # create_db_and_tables()
-    get_jobs()
-    create_jobs()
-
+    # get_jobs()
+    # create_jobs()
+    ...
 
 if __name__ == "__main__":
     main()

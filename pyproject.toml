@@ -10,16 +10,43 @@ requests = "^2.26.0"
 sqlmodel = ">=0.0.6"
 python-dotenv = "^1.0.0"
 SQLAlchemy = ">=1.4.35"
+typer = {extras = ["all"], version = "^0.9.0"}
 
 [tool.poetry.dev-dependencies]
 mypy = "^1.4.0"
-flake8 = "^6.1.0"
-black = {version = "^23.7", python = "^3.10"}
-autoflake = "^2.2"
-isort = "^5.9.3"
+pytest = "^7.2"
+black = "^23"
+ruff = ">=0.0.249"
 
-[tool.isort]
-profile = "black"
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+[tool.black]
+color = true
+line-length = 120
+target-version = ['py310']
+skip-string-normalization = false
+skip-magic-trailing-comma = true
+
+[tool.ruff]
+line-length = 120
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "C",  # flake8-comprehensions
+    "B",  # flake8-bugbear
+    'Q', 
+    'RUF100', 
+    'C90', # is too complex ({complexity} > {max_complexity})
+    'UP', #  upgrade syntax for newer versions of the language.
+]
+ignore = [
+#    "E501",  # line too long, handled by black
+    "B008",  # do not perform function calls in argument defaults
+#    "C901",  # too complex
+]
+flake8-quotes = {inline-quotes = 'double', multiline-quotes = 'double'}
+target-version = "py310"
+
+[tool.ruff.isort]
+combine-as-imports = true
+known-third-party = ["pydantic"] # ["fastapi", "pydantic", "starlette"]
