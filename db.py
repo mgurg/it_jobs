@@ -9,6 +9,7 @@ class Job(Base):
     __tablename__ = "jobs"
     id = sa.Column(sa.INTEGER(), sa.Identity(), primary_key=True, autoincrement=True, nullable=False)
     uuid = sa.Column(sa.VARCHAR(length=36), autoincrement=False, nullable=True)
+    source = sa.Column(sa.VARCHAR(length=16), autoincrement=False, nullable=True)
     title = sa.Column(sa.VARCHAR(length=255), autoincrement=False, nullable=True)
     street = sa.Column(sa.VARCHAR(length=255), autoincrement=False, nullable=True)
     city = sa.Column(sa.VARCHAR(length=255), autoincrement=False, nullable=True)
@@ -28,7 +29,8 @@ class Job(Base):
     skills = sa.Column(sa.VARCHAR(length=255), autoincrement=False, nullable=True)
     remote = sa.Column(sa.BOOLEAN(), autoincrement=False, nullable=True)
     offer_id = sa.Column(sa.VARCHAR(length=255), autoincrement=False, nullable=True)
-    offer_details = sa.Column(sa.VARCHAR(length=255), autoincrement=False, nullable=True)
+    offer_details = sa.Column(sa.TEXT, autoincrement=False, nullable=True)
+    offer_body_md = sa.Column(sa.TEXT, autoincrement=False, nullable=True)
     created_at = sa.Column(DATE(), autoincrement=False, nullable=True)
     updated_at = sa.Column(DATE(), autoincrement=False, nullable=True)
     ended_at = sa.Column(DATE(), autoincrement=False, nullable=True)
