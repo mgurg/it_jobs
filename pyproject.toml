@@ -12,6 +12,7 @@ SQLAlchemy = ">=2.0.0"
 typer = {extras = ["all"], version = "^0.9.0"}
 markdownify = "^0.11.6"
 random-user-agent = "^1.0.1"
+loguru = "^0.7.0"
 
 [tool.poetry.dev-dependencies]
 mypy = "^1.4.0"

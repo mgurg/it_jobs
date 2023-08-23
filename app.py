@@ -16,6 +16,9 @@ from sqlalchemy.orm import Session
 
 from db import Base, Job, engine
 
+from loguru import logger
+logger.add("file_{time}.log", format="{time} {level} {message}", level="INFO")
+
 APP_DIR = Path(__file__).parent
 
 
@@ -69,7 +72,7 @@ def create_jobs(file_path):
     for idx, job in enumerate(daily_job_listing):
         if (idx > 0) and (idx % 10 == 0):
             print(f"{idx}/{len(daily_job_listing)}")
-            exit()
+            # exit()
         with Session(engine) as session:
             query = select(Job).where(Job.offer_id == job["id"])
             result = session.execute(query)
@@ -127,15 +130,12 @@ def main(init: bool = False):
     if init:
         print("Initializing DB...")
         Base.metadata.create_all(engine)
-        print("Initializing DB...DONE")
         exit()
     print("Getting Job...")
     file_path = get_jobs()
-    print("Getting Job...DONE")
-
-    print("Parsing Job...")
     create_jobs(file_path)
-    print("Parsing Job...DONE")
+
+    logger.info("That's it, beautiful and simple logging!")
     exit()
 
 
