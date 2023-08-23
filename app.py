@@ -6,158 +6,138 @@ from random import randint
 from time import sleep
 
 import requests
+import typer
 from dotenv import dotenv_values
-from sqlmodel import Field, Session, SQLModel, create_engine, select
+from markdownify import markdownify as md
+from random_user_agent.params import OperatingSystem, SoftwareName
+from random_user_agent.user_agent import UserAgent
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from db import Base, Job, engine
+
+APP_DIR = Path(__file__).parent
 
 
-def get_uuid() -> uuid.uuid4:
-    """Generate SQLModel safe UUID (without leading zero), https://github.com/tiangolo/sqlmodel/pull/26"""
-
-    value = uuid.uuid4().hex
-    if value[0] == "0":
-        value.replace("0", str(randint(0, 9)), 1)
-
-    value = str(randint(0, 9)) * (32 - len(value)) + value
-
-    return value
-
-
-class Jobs(SQLModel, table=True):
-    id: int | None = Field(default=None, primary_key=True)
-    title: str | None = Field(max_length=255)
-    street: str | None = Field(max_length=255)
-    city: str | None = Field(max_length=255)
-    country_code: str | None = Field(max_length=16)
-    address_text: str | None = Field(max_length=255)
-    marker_icon: str | None = Field(max_length=16)
-    workplace_type: str | None = Field(max_length=16)
-    company_name: str | None = Field(max_length=255)
-    company_url: str | None = Field(max_length=255)
-    company_size: str | None = Field(max_length=255)
-    experience_level: str | None = Field(max_length=255)
-    latitude: str | None = Field(max_length=16)
-    longitude: str | None = Field(max_length=16)
-    published_at: datetime | None
-    remote_interview: bool | None
-    employment_types: str | None
-    skills: str | None
-    remote: bool | None
-    offer_id: str | None = Field(max_length=255)
-    offer_details: str | None
-    created_at: datetime | None
-    ended_at: datetime | None
-    updated_at: datetime | None
-    # uuid: Optional[uuid.UUID]
-
-    class Config:
-        arbitrary_types_allowed = True
-
-
-sqlite_file_name = "database.db"
-sqlite_url = f"sqlite:///{sqlite_file_name}"
-
-engine = create_engine(sqlite_url, encoding="utf-8", echo=False)
-
-
-def create_db_and_tables():
-    SQLModel.metadata.create_all(engine)
+def get_random_ua() -> str:
+    software_names = [SoftwareName.CHROME.value]
+    operating_systems = [OperatingSystem.WINDOWS.value, OperatingSystem.LINUX.value]
+    user_agent_rotator = UserAgent(software_names=software_names, operating_systems=operating_systems, limit=100)
+    user_agent = user_agent_rotator.get_random_user_agent()
+    return user_agent
 
 
 def get_jobs():
     config = dotenv_values(".env")
-    headers = {
-        "accept": "text/html,application/xhtml+xml,application/xml",
-        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36",
-    }
-    r = requests.get(config["URL"], headers=headers)
 
-    file = "jobs_" + date.today().isoformat() + ".json"
-    filepath = Path(Path.cwd() / "offers" / file)
-    with filepath.open("w", encoding="utf-8") as f:
-        json.dump(r.json(), f)
+    headers: dict = {"accept": "text/html,application/xhtml+xml,application/xml", "user-agent": get_random_ua()}
+
+    file_name = "jobs_" + date.today().isoformat() + ".json"
+    file_path: Path = Path(APP_DIR / "offers" / file_name)
+    if not file_path.is_file():
+        r = requests.get(config["URL_JJIT"], headers=headers)
+        with file_path.open("w", encoding="utf-8") as f:
+            json.dump(r.json(), f)
+
+    return file_path
 
 
-def get_job_details(id: str) -> str:
+def get_job_details(job_id: str) -> dict:
     config = dotenv_values(".env")
-    headers = {
-        "accept": "text/html,application/xhtml+xml,application/xml",
-        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36",
-    }
-    # print(config["URL"] + "/" + id)
+    headers = {"accept": "text/html,application/xhtml+xml,application/xml", "user-agent": get_random_ua()}
     sleep(randint(1, 2))
-    r = requests.get(config["URL"] + "/" + id, headers=headers)
+    r = requests.get(config["URL_JJIT"] + "/" + job_id, headers=headers)
+    response_dict = r.json()
 
-    return json.dumps(r.json())
+    for key in [
+        "future_consent_title",
+        "future_consent",
+        "information_clause",
+        "custom_consent_title",
+        "custom_consent",
+    ]:
+        if key in response_dict:
+            del response_dict[key]
+
+    return response_dict
+    # return json.dumps(response_dict, sort_keys=True, ensure_ascii=False)
 
 
-def create_jobs():
-    file = "jobs_" + date.today().isoformat() + ".json"
-    filepath = Path(Path.cwd() / "offers" / file)
-
-    with filepath.open() as f:
-        obj = json.load(f)
-
-    cnt = 0
-    for job in obj:
-        cnt += 1
-        f"{cnt}/{len(obj)}"
-        # if cnt % 10 == 0:
-        #    print(iteration)
-
+def create_jobs(file_path):
+    with file_path.open() as f:
+        daily_job_listing = json.load(f)
+    for idx, job in enumerate(daily_job_listing):
+        if (idx > 0) and (idx % 10 == 0):
+            print(f"{idx}/{len(daily_job_listing)}")
+            exit()
         with Session(engine) as session:
-            existing_job = session.exec(select(Jobs).where(Jobs.offer_id == job["id"])).one_or_none()
+            query = select(Job).where(Job.offer_id == job["id"])
+            result = session.execute(query)
+            db_job = result.scalar_one_or_none()
+            if db_job:
+                update_data = {"ended_at": datetime.now()}
+                for key, value in update_data.items():
+                    setattr(db_job, key, value)
 
-            if existing_job:
-                # print("UPDATE " + job["title"])
-                update_package = {"ended_at": datetime.utcnow()}
-
-                for key, value in update_package.items():
-                    setattr(existing_job, key, value)
-                # existing_job.ended_at == datetime.utcnow()
-                session.add(existing_job)
+                session.add(db_job)
                 session.commit()
-                session.refresh(existing_job)
+                session.refresh(db_job)
                 continue
 
-        # print(job["title"])
-        job = Jobs(
-            title=job["title"],
-            street=job["street"],
-            city=job["city"],
-            country_code=job["country_code"],
-            address_text=job["address_text"],
-            marker_icon=job["marker_icon"],
-            workplace_type=job["workplace_type"],
-            company_name=job["company_name"],
-            company_url=job["company_url"],
-            company_size=job["company_size"],
-            experience_level=job["experience_level"],
-            latitude=job["latitude"],
-            longitude=job["longitude"],
-            published_at=job["published_at"],
-            remote_interview=job["remote_interview"],
-            employment_types=json.dumps(job["employment_types"]),
-            skills=json.dumps(job["skills"]),
-            remote=job["remote"],
-            offer_id=job["id"],
-            offer_details=get_job_details(job["id"]),
-            created_at=datetime.utcnow(),
-            ended_at=None,
-            updated_at=None,
-            # uuid=get_uuid(),
-        )
+            job_details = get_job_details(job["id"])
 
-        with Session(engine) as session:
-            session.add(job)
+            _job_data = {
+                "uuid": uuid.uuid4().hex,
+                "source": "JJIT",
+                "title": job["title"],
+                "street": job["street"],
+                "city": job["city"],
+                "country_code": job["country_code"],
+                "address_text": job["address_text"],
+                "marker_icon": job["marker_icon"],
+                "workplace_type": job["workplace_type"],
+                "company_name": job["company_name"],
+                "company_url": job["company_url"],
+                "company_size": job["company_size"],
+                "experience_level": job["experience_level"],
+                "latitude": job["latitude"],
+                "longitude": job["longitude"],
+                "published_at": datetime.strptime(job["published_at"], "%Y-%m-%dT%H:%M:%S.%fZ"),
+                "remote_interview": job["remote_interview"],
+                "employment_types": json.dumps(job["employment_types"]),
+                "skills": json.dumps(job["skills"]),
+                "remote": job["remote"],
+                "offer_id": job["id"],
+                "offer_details": json.dumps(job_details, sort_keys=True, ensure_ascii=False),
+                "offer_body_md": md(job_details["body"]),
+                "created_at": datetime.utcnow(),
+                "ended_at": None,
+                "updated_at": None,
+            }
 
+            new_job = Job(**_job_data)
+            session.add(new_job)
             session.commit()
 
 
-def main():
-    # create_db_and_tables()
-    # get_jobs()
-    # create_jobs()
-    ...
+def main(init: bool = False):
+    """
+    Get Job offers
+    """
+    if init:
+        print("Initializing DB...")
+        Base.metadata.create_all(engine)
+        print("Initializing DB...DONE")
+        exit()
+    print("Getting Job...")
+    file_path = get_jobs()
+    print("Getting Job...DONE")
+
+    print("Parsing Job...")
+    create_jobs(file_path)
+    print("Parsing Job...DONE")
+    exit()
+
 
 if __name__ == "__main__":
-    main()
+    typer.run(main)
