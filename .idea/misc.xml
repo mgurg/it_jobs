@@ -3,5 +3,5 @@
   <component name="Black">
     <option name="sdkUUID" value="6d5d0826-9732-48c7-9d3a-83ed62d21524" />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.10 (it_jobs)" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="Poetry (it_jobs)" project-jdk-type="Python SDK" />
 </project>

@@ -8,6 +8,7 @@ from time import sleep
 import requests
 import typer
 from dotenv import dotenv_values
+from loguru import logger
 from markdownify import markdownify as md
 from random_user_agent.params import OperatingSystem, SoftwareName
 from random_user_agent.user_agent import UserAgent
@@ -16,8 +17,7 @@ from sqlalchemy.orm import Session
 
 from db import Base, Job, engine
 
-from loguru import logger
-logger.add("file_{time}.log", format="{time} {level} {message}", level="INFO")
+logger.add("logs/file_{time:YYYY-MM-DD}.log", format="{time} {level} {message}", level="INFO")
 
 APP_DIR = Path(__file__).parent
 
@@ -45,11 +45,15 @@ def get_jobs():
     return file_path
 
 
-def get_job_details(job_id: str) -> dict:
+def get_job_details(job_id: str) -> dict | None:
     config = dotenv_values(".env")
     headers = {"accept": "text/html,application/xhtml+xml,application/xml", "user-agent": get_random_ua()}
     sleep(randint(1, 2))
     r = requests.get(config["URL_JJIT"] + "/" + job_id, headers=headers)
+
+    if r.status_code != 200:
+        return None
+
     response_dict = r.json()
 
     for key in [
@@ -69,11 +73,12 @@ def get_job_details(job_id: str) -> dict:
 def create_jobs(file_path):
     with file_path.open() as f:
         daily_job_listing = json.load(f)
-    for idx, job in enumerate(daily_job_listing):
-        if (idx > 0) and (idx % 10 == 0):
-            print(f"{idx}/{len(daily_job_listing)}")
-            # exit()
-        with Session(engine) as session:
+
+    with Session(engine) as session:
+        for idx, job in enumerate(daily_job_listing):
+            if (idx > 0) and (idx % 200 == 0):
+                print(f"{idx}/{len(daily_job_listing)}")
+
             query = select(Job).where(Job.offer_id == job["id"])
             result = session.execute(query)
             db_job = result.scalar_one_or_none()
@@ -88,6 +93,9 @@ def create_jobs(file_path):
                 continue
 
             job_details = get_job_details(job["id"])
+            if not job_details:
+                logger.info("Missing Job details: " + job["id"])
+                continue
 
             _job_data = {
                 "uuid": uuid.uuid4().hex,
