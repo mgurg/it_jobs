@@ -17,7 +17,8 @@ from sqlalchemy.orm import Session
 
 from db import Base, Job, engine
 
-logger.add("logs/file_{time:YYYY-MM-DD}.log", format="{time} {level} {message}", level="INFO")
+logger.add("logs/file_{time:YYYY-MM-DD}.log", format="{time} {level} {message}", level="INFO", backtrace=True,
+           diagnose=True)
 
 APP_DIR = Path(__file__).parent
 
@@ -52,6 +53,7 @@ def get_job_details(job_id: str) -> dict | None:
     r = requests.get(config["URL_JJIT"] + "/" + job_id, headers=headers)
 
     if r.status_code != 200:
+        logger.info(f"Missing Job details: {job_id}")
         return None
 
     response_dict = r.json()
@@ -79,56 +81,64 @@ def create_jobs(file_path):
             if (idx > 0) and (idx % 200 == 0):
                 print(f"{idx}/{len(daily_job_listing)}")
 
-            query = select(Job).where(Job.offer_id == job["id"])
-            result = session.execute(query)
-            db_job = result.scalar_one_or_none()
-            if db_job:
-                update_data = {"ended_at": datetime.now()}
-                for key, value in update_data.items():
-                    setattr(db_job, key, value)
+            try:
+                query = select(Job).where(Job.offer_id == job["id"])
+                result = session.execute(query)
+                db_job = result.scalar_one_or_none()
+                if db_job:
+                    update_db_record(db_job, session)
+                    continue
 
-                session.add(db_job)
-                session.commit()
-                session.refresh(db_job)
-                continue
+                job_details = get_job_details(job["id"])
+                if not job_details:
+                    continue
 
-            job_details = get_job_details(job["id"])
-            if not job_details:
-                logger.info("Missing Job details: " + job["id"])
-                continue
+                save_db_record(job, job_details, session)
+            except Exception as e:
+                logger.exception("Caught" + repr(e))
 
-            _job_data = {
-                "uuid": uuid.uuid4().hex,
-                "source": "JJIT",
-                "title": job["title"],
-                "street": job["street"],
-                "city": job["city"],
-                "country_code": job["country_code"],
-                "address_text": job["address_text"],
-                "marker_icon": job["marker_icon"],
-                "workplace_type": job["workplace_type"],
-                "company_name": job["company_name"],
-                "company_url": job["company_url"],
-                "company_size": job["company_size"],
-                "experience_level": job["experience_level"],
-                "latitude": job["latitude"],
-                "longitude": job["longitude"],
-                "published_at": datetime.strptime(job["published_at"], "%Y-%m-%dT%H:%M:%S.%fZ"),
-                "remote_interview": job["remote_interview"],
-                "employment_types": json.dumps(job["employment_types"]),
-                "skills": json.dumps(job["skills"]),
-                "remote": job["remote"],
-                "offer_id": job["id"],
-                "offer_details": json.dumps(job_details, sort_keys=True, ensure_ascii=False),
-                "offer_body_md": md(job_details["body"]),
-                "created_at": datetime.utcnow(),
-                "ended_at": None,
-                "updated_at": None,
-            }
 
-            new_job = Job(**_job_data)
-            session.add(new_job)
-            session.commit()
+def update_db_record(db_job, session: Session) -> None:
+    update_data = {"ended_at": datetime.now()}
+    for key, value in update_data.items():
+        setattr(db_job, key, value)
+    session.add(db_job)
+    session.commit()
+    session.refresh(db_job)
+
+
+def save_db_record(job: dict, job_details: dict, session: Session) -> None:
+    _job_data = {
+        "uuid": uuid.uuid4().hex,
+        "source": "JJIT",
+        "title": job["title"],
+        "street": job["street"],
+        "city": job["city"],
+        "country_code": job["country_code"],
+        "address_text": job["address_text"],
+        "marker_icon": job["marker_icon"],
+        "workplace_type": job["workplace_type"],
+        "company_name": job["company_name"],
+        "company_url": job["company_url"],
+        "company_size": job["company_size"],
+        "experience_level": job["experience_level"],
+        "latitude": job["latitude"],
+        "longitude": job["longitude"],
+        "published_at": datetime.strptime(job["published_at"], "%Y-%m-%dT%H:%M:%S.%fZ"),
+        "remote_interview": job["remote_interview"],
+        "employment_types": json.dumps(job["employment_types"]),
+        "skills": json.dumps(job["skills"]),
+        "remote": job["remote"],
+        "offer_id": job["id"],
+        "offer_details": json.dumps(job_details, sort_keys=True, ensure_ascii=False),
+        "offer_body_md": md(job_details["body"]),
+        "created_at": datetime.utcnow(),
+        "ended_at": None,
+        "updated_at": None,
+    }
+    new_job = Job(**_job_data)
+    session.add(new_job)
+    session.commit()
 
 
 def main(init: bool = False):
